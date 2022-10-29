@@ -1,0 +1,88 @@
+name: gearcoleco # you probably want to 'snapcraft register <name>'
+version: '1.0.0' # just for humans, typically '1.2+git' or '1.3.2'
+summary: A very accurate cross-platform ColecoVision emulator. # 79 char long summary
+description: |
+  Gearcoleco is a very accurate cross-platform ColecoVision emulator
+  written in C++ that runs on Windows, macOS, Linux, BSD,
+  Raspberry Pi and RetroArch.
+
+  _More build details: https://github.com/Joker2770/Gearcoleco-snap.git_
+
+grade: stable # must be 'stable' to release into candidate/stable channels
+confinement: strict # use 'strict' once you have the right plugs and slots
+base: core18
+
+plugs: # plugs for theming, font settings, cursor and to use gtk3 file chooser
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes:gtk-3-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes:icon-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/data-dir/sounds
+    default-provider: gtk-common-themes:sounds-themes
+
+layout:
+  /etc/fonts:
+    bind: $SNAP/etc/fonts
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib:
+    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib
+  /usr/share/alsa:
+    bind: $SNAP/usr/share/alsa
+
+apps:
+  gearcoleco:
+    command: gearcoleco
+    command-chain: ["snap/command-chain/alsa-launch"]
+    environment:
+      # pulseaudio
+      LD_LIBRARY_PATH: ${SNAP}/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio
+    extensions: [gnome-3-28]
+    plugs:
+      - home
+      - alsa
+      - audio-playback
+      - pulseaudio
+      - desktop
+      - desktop-legacy
+      - gsettings
+      - wayland
+      - unity7
+      - x11
+      - opengl
+      - removable-media
+
+parts:
+  alsa-mixin:
+    plugin: dump
+    source: https://github.com/diddlesnaps/snapcraft-alsa.git
+    source-subdir: snapcraft-assets
+    build-packages:
+      - libasound2-dev
+    stage-packages:
+      - libasound2
+      - libasound2-plugins
+      - yad
+  gearcoleco:
+    after: [alsa-mixin]
+    plugin: make
+    source: https://github.com/drhelius/Gearcoleco.git
+    source-type: git
+    source-branch: master
+    source-subdir: platforms/linux
+    # source: ../
+    artifacts: [gearcoleco, gamecontrollerdb.txt]
+    build-packages:
+      - gcc
+      - make
+      - build-essential
+      - libsdl2-dev
+      - libglew-dev
+    stage-packages:
+      - libsdl2-2.0-0
+      - libglew2.0
+

@@ -71,6 +71,7 @@ apps:
       - x11
       - opengl
       - removable-media
+      - joystick
 
 parts:
   alsa-mixin:
